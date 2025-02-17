@@ -1,4 +1,4 @@
-body {
+.body {
     background:black;
     color: white;
     margin: 0;
@@ -18,3 +18,12 @@ body {
     margin-top: auto;
     text-align: center;
 }
+.container {
+background:black;
+color:gray;
+border-radius:5px;
+text-align:center;
+
+    
+}
+
