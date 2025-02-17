@@ -14,9 +14,15 @@ async function fetchTVShows() {
 function displayTVShows(tvShows) {
     const container = document.getElementById('tvshow-container');
     container.innerHTML = ''; // Clear previous content
+
+    // Assuming the API returns an array of TV shows
     tvShows.forEach(show => {
         const showElement = document.createElement('div');
-        showElement.innerHTML = `<h2>${show.title}</h2><p>${show.description}</p>`; // Adjust based on Embed.su response
+        showElement.innerHTML = `
+            <h2>${show.title}</h2>
+            <p>${show.description}</p>
+            <img src="${show.image}" alt="${show.title} poster" /> <!-- Displaying an image if available -->
+        `; // Adjust based on Embed.su response
         container.appendChild(showElement);
     });
 }
