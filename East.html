@@ -4,15 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Movie Search and Play</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        #searchContainer {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        #movieName {
+            padding: 10px;
+            font-size: 18px;
+            width: 300px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #movieDetails {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #moviePoster {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+
+        #player {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #moviePlayer {
+            width: 80%;
+            max-width: 800px;
+        }
+
+        .movieTitle {
+            font-size: 24px;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        .movieDescription {
+            font-size: 16px;
+            color: #555;
+            max-width: 600px;
+            margin: 0 auto 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Movie Player</h1>
-    <input type="text" id="movieName" placeholder="Enter movie name">
-    <button onclick="searchMovie()">Search</button>
-    
+    <h1>Movie Search and Play</h1>
+
+    <div id="searchContainer">
+        <input type="text" id="movieName" placeholder="Enter movie name">
+        <button onclick="searchMovie()">Search</button>
+    </div>
+
     <div id="movieDetails"></div>
-    <div id="player" style="display:none;">
-        <video id="moviePlayer" width="600" controls>
+
+    <div id="player">
+        <video id="moviePlayer" controls>
             <source id="movieSource" type="video/mp4">
             Your browser does not support the video tag.
         </video>
@@ -28,12 +107,16 @@
             try {
                 const response = await fetch(movieListUrl);
                 const movieList = await response.json();
+
+                // Search for the movie by title
                 const movie = movieList.find(m => m.title.toLowerCase().includes(movieName));
 
                 if (movie) {
-                    playMovie(movie);
+                    fetchMovieById(movie.id);  // Fetch movie using its ID
                 } else {
                     alert('Movie not found.');
+                    document.getElementById('movieDetails').innerHTML = '';
+                    document.getElementById('player').style.display = 'none';
                 }
             } catch (error) {
                 console.error('Error fetching movie data:', error);
@@ -41,21 +124,43 @@
             }
         }
 
+        async function fetchMovieById(movieId) {
+            try {
+                // Construct the URL with the movie ID
+                const movieDetailUrl = `https://embed.su/movie/details/${movieId}.json`;  // Example URL format for movie details
+                const response = await fetch(movieDetailUrl);
+                const movieDetails = await response.json();
+
+                if (movieDetails && movieDetails.url) {
+                    playMovie(movieDetails);
+                } else {
+                    alert('Movie details could not be retrieved.');
+                }
+            } catch (error) {
+                console.error('Error fetching movie details:', error);
+                alert('Error fetching the movie details.');
+            }
+        }
+
         function playMovie(movie) {
+            const movieDetailsDiv = document.getElementById('movieDetails');
+            const playerDiv = document.getElementById('player');
             const moviePlayer = document.getElementById('moviePlayer');
             const movieSource = document.getElementById('movieSource');
-            const playerDiv = document.getElementById('player');
-            const movieDetails = document.getElementById('movieDetails');
 
-            movieDetails.innerHTML = `
-                <h2>${movie.title}</h2>
-                <p>${movie.description}</p>
+            // Display the movie poster, title, and description
+            movieDetailsDiv.innerHTML = `
+                <img src="${movie.poster}" alt="${movie.title} Poster" id="moviePoster">
+                <div class="movieTitle">${movie.title}</div>
+                <div class="movieDescription">${movie.description}</div>
             `;
 
+            // Set the video source and play
             movieSource.src = movie.url; // Assuming 'url' is the direct link to the movie.
             moviePlayer.load();
             moviePlayer.play();
 
+            // Show the player
             playerDiv.style.display = 'block';
         }
     </script>
