@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Watch Movie</title>
+    <title>Movie Search</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -20,84 +20,151 @@
             margin: 0;
         }
 
-        #movieDetails {
+        #searchContainer {
             text-align: center;
+            margin: 20px 0;
+        }
+
+        #movieName {
+            padding: 10px;
+            font-size: 18px;
+            width: 300px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #movieList {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
             padding: 20px;
-        }
-
-        #moviePoster {
-            max-width: 300px;
-            height: auto;
-            margin-bottom: 20px;
-        }
-
-        #moviePlayer {
-            width: 80%;
-            max-width: 800px;
-            display: block;
-            margin: 20px auto;
-        }
-
-        #movieTitle {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-            margin: 10px 0;
-        }
-
-        #movieDescription {
-            font-size: 16px;
-            color: #555;
-            max-width: 800px;
             margin: 0 auto;
+            max-width: 1200px;
+        }
+
+        .movieCard {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .movieCard:hover {
+            transform: scale(1.05);
+        }
+
+        .moviePoster {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .movieDetails {
+            padding: 15px;
+            text-align: center;
+        }
+
+        .movieTitle {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #333;
+        }
+
+        .movieDescription {
+            font-size: 14px;
+            color: #555;
+            max-height: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     </style>
 </head>
 <body>
-    <h1>Watch Movie</h1>
+    <h1>Movie Search</h1>
 
-    <div id="movieDetails">
-        <img id="moviePoster" src="" alt="Movie Poster">
-        <div id="movieTitle"></div>
-        <div id="movieDescription"></div>
-        <video id="moviePlayer" controls>
-            <source id="movieSource" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
+    <div id="searchContainer">
+        <input type="text" id="movieName" placeholder="Search for a movie">
+        <button onclick="searchMovie()">Search</button>
     </div>
 
-    <script>
-        // Extract movie id and type from the URL query parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const movieId = urlParams.get('id');
-        const movieType = urlParams.get('type');
+    <div id="movieList"></div>
 
-        // Assuming we can fetch movie details using the ID
-        async function fetchMovieDetails() {
-            const movieListUrl = 'https://embed.su/list/movie.json'; // Or the relevant URL for the movie data
+    <script>
+        const movieListUrl = 'https://embed.su/list/movie.json';  // URL to fetch the movie JSON
+
+        async function searchMovie() {
+            const movieName = document.getElementById('movieName').value.trim().toLowerCase();
+            if (!movieName) return;
+
             try {
                 const response = await fetch(movieListUrl);
-                const movieList = await response.json();
-                const movie = movieList.find(m => m.id === movieId);
 
-                if (movie) {
-                    // Display movie details
-                    document.getElementById('movieTitle').textContent = movie.title;
-                    document.getElementById('movieDescription').textContent = movie.description;
-                    document.getElementById('moviePoster').src = movie.poster;
-                    document.getElementById('movieSource').src = movie.url; // Assuming 'url' is the streaming link
-                    document.getElementById('moviePlayer').load();
-                } else {
-                    alert('Movie not found');
+                // Check if the response is successful
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch data. Status: ${response.status}`);
                 }
+
+                const movieList = await response.json();
+
+                // Ensure the movieList is an array and contains the expected data
+                if (!Array.isArray(movieList)) {
+                    throw new Error('Invalid movie list structure.');
+                }
+
+                displayMovies(movieList, movieName);
             } catch (error) {
-                console.error('Error fetching movie details:', error);
-                alert('There was an error fetching movie details.');
+                console.error('Error fetching movie data:', error);
+                alert('There was an error fetching the movie list. See console for details.');
             }
         }
 
-        // Load movie details when the page loads
-        fetchMovieDetails();
+        function displayMovies(movieList, movieName) {
+            const movieListDiv = document.getElementById('movieList');
+            movieListDiv.innerHTML = '';  // Clear previous results
+
+            const filteredMovies = movieList.filter(movie =>
+                movie.title.toLowerCase().includes(movieName)
+            );
+
+            if (filteredMovies.length === 0) {
+                movieListDiv.innerHTML = `<p>No movies found.</p>`;
+                return;
+            }
+
+            filteredMovies.forEach(movie => {
+                const movieCard = document.createElement('div');
+                movieCard.classList.add('movieCard');
+                movieCard.onclick = () => window.location.href = `watch.html?id=${movie.id}&type=movie`;
+
+                movieCard.innerHTML = `
+                    <img class="moviePoster" src="${movie.poster}" alt="${movie.title}">
+                    <div class="movieDetails">
+                        <div class="movieTitle">${movie.title}</div>
+                        <div class="movieDescription">${movie.description}</div>
+                    </div>
+                `;
+
+                movieListDiv.appendChild(movieCard);
+            });
+        }
     </script>
 </body>
 </html>
