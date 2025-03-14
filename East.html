@@ -108,21 +108,25 @@
     <div id="movieList"></div>
 
     <script>
-        const movieListUrl = 'https://embed.su/list/movie.json';  // URL to fetch the movie JSON
+        // Replace with actual URL if CORS is allowed
+        const movieListUrl = 'https://embed.su/list/movie.json';  // Your movie JSON URL
 
         async function searchMovie() {
             const movieName = document.getElementById('movieName').value.trim().toLowerCase();
             if (!movieName) return;
 
             try {
-                const response = await fetch(movieListUrl);
+                console.log("Fetching movie list...");
 
-                // Check if the response is successful
+                const response = await fetch(movieListUrl);  // Attempt to fetch the movie list
+                console.log("Response Status:", response.status);
+
                 if (!response.ok) {
                     throw new Error(`Failed to fetch data. Status: ${response.status}`);
                 }
 
                 const movieList = await response.json();
+                console.log("Movie List:", movieList);
 
                 // Ensure the movieList is an array and contains the expected data
                 if (!Array.isArray(movieList)) {
@@ -130,9 +134,30 @@
                 }
 
                 displayMovies(movieList, movieName);
+
             } catch (error) {
                 console.error('Error fetching movie data:', error);
-                alert('There was an error fetching the movie list. See console for details.');
+                alert('There was an error fetching the movie list. Using static movie list for testing.');
+
+                // Static movie list fallback for testing
+                const movieList = [
+                    {
+                        "id": "675",
+                        "title": "Movie Title",
+                        "description": "Movie Description",
+                        "poster": "https://via.placeholder.com/300x400",
+                        "url": "https://path/to/video.mp4"
+                    },
+                    {
+                        "id": "676",
+                        "title": "Another Movie",
+                        "description": "Another description",
+                        "poster": "https://via.placeholder.com/300x400",
+                        "url": "https://path/to/video2.mp4"
+                    }
+                ];
+
+                displayMovies(movieList, movieName);  // Use static data for testing
             }
         }
 
